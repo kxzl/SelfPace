@@ -118,10 +118,11 @@ A locally-hosted (optionally web-hosted) running analytics platform. It ingests 
 ## Technology Choices
 
 ### Frontend
-- **Framework**: Svelte (or plain JS if complexity warrants) — lightweight, no build-time overhead to fight inside Docker.
-- **DuckDB WASM**: [`@duckdb/duckdb-wasm`](https://github.com/duckdb/duckdb-wasm) — query Parquet files from the browser without a backend query layer.
-- **Charting**: [Observable Plot](https://observablehq.com/plot/) or [uPlot](https://github.com/leeoniya/uPlot) — both are small and fast.
-- **Build**: Vite inside a Node builder container; output copied to nginx image in a multi-stage build.
+- **Framework**: [Evidence.dev](https://evidence.dev) — open-source BI-as-code framework built on SvelteKit. Write SQL + Markdown; Evidence generates a static site with interactive charts.
+- **DuckDB WASM**: Built into Evidence — queries run client-side against Parquet files served as static files. No separate setup needed.
+- **Charting**: Evidence's built-in component library (backed by ECharts) covers standard analytics charts. Custom Svelte components handle anything outside Evidence's built-in set.
+- **Maps**: Custom Svelte component wrapping Leaflet.js for GPS route/polyline rendering. Evidence's built-in map components (point, bubble, area) handle aggregate geo views.
+- **Build**: Evidence build (`npm run build`) produces a static site. Multi-stage Docker: Node builder → nginx image. Evidence build is triggered by FastAPI after each sync completes.
 
 ### Backend
 - **Framework**: FastAPI (Python 3.12).
@@ -148,12 +149,12 @@ A locally-hosted (optionally web-hosted) running analytics platform. It ingests 
 
 ```yaml
 services:
-  frontend:
-    build: ./frontend
+  evidence:
+    build: ./evidence      # Node builder → nginx; runs `npm run build`
     ports:
       - "3000:80"
     volumes:
-      - data:/usr/share/nginx/html/data:ro
+      - data:/usr/share/nginx/html/data:ro   # Parquet files served as static files
     depends_on:
       - backend
 
@@ -170,7 +171,9 @@ volumes:
   data:
 ```
 
-The frontend nginx config exposes `/data` as a static file path so DuckDB WASM can `fetch()` Parquet files without routing through the backend.
+**Data refresh flow**: FastAPI writes Parquet files to `/data/parquet/` → calls `POST /internal/build` (or a file watcher) → triggers `npm run build` inside the Evidence container → nginx serves the updated static site.
+
+The Evidence nginx config exposes `/data` as a static path so DuckDB WASM can `fetch()` Parquet files directly from the browser.
 
 ---
 
@@ -184,7 +187,7 @@ The frontend nginx config exposes `/data` as a static file path so DuckDB WASM c
 - Cadence, stride length trends
 - Elevation gain over time
 - Race predictor (Riegel formula)
-- Activity map (leaflet.js, GPX overlay)
+- Activity map (Leaflet.js, GPS polyline overlay — custom Svelte component in Evidence)
 
 ---
 

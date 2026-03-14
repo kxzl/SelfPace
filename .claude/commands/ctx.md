@@ -50,8 +50,11 @@ Build order:
 
 ## 7. Key architecture facts (hardcoded)
 
-- Two Docker services: `frontend` (nginx SPA on :3000) + `backend` (FastAPI on :8000)
-- DuckDB WASM queries Parquet files served as static files from nginx — no backend query layer
+- Two Docker services: `evidence` (Evidence.dev static site → nginx on :3000) + `backend` (FastAPI on :8000)
+- Frontend is Evidence.dev — SQL + Markdown pages, builds to a static site, DuckDB WASM is built in
+- DuckDB WASM (inside Evidence) queries Parquet files served as static files from nginx — no backend query layer
+- GPS route maps: custom Svelte component (`RouteMap.svelte`) wrapping Leaflet.js — Evidence built-in maps don't support polylines
+- After each sync: FastAPI writes Parquet → triggers Evidence rebuild → nginx serves updated site
 - APScheduler runs inside FastAPI — no Celery/Redis
 - Data layout: `/data/raw/`, `/data/parquet/`, `/data/db/`, `/data/imports/`
 - Canonical activity schema: `activity_id, source, source_id, started_at, distance_m, duration_s, activity_type, avg_hr, avg_cadence, avg_pace_ms, elevation_gain_m, polyline`

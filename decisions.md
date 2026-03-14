@@ -85,6 +85,20 @@ Each entry has a date, a status, and a clear "what we decided / what we learned"
 
 ## Frontend
 
+### 2026-03-14 — GPS route maps via custom Leaflet component in Evidence
+**Status**: decided
+**Context**: Evidence's built-in map components (point, bubble, area) cover aggregate geo views but have no polyline/route layer. Run activity maps require rendering GPS tracks from encoded polyline strings stored in Parquet.
+**What we did**: Decided to write a single custom Svelte component (`RouteMap.svelte`) wrapping Leaflet.js. Evidence supports custom components in `/components/` that can use any npm package. The component decodes the polyline column from a DuckDB query result and renders it on an OpenStreetMap tile layer via `L.polyline().addTo(map)`.
+**Outcome**: Not yet implemented.
+**Decision**: Use Leaflet + `@mapbox/polyline` for decoding. Component receives query results as a prop (`data={query_result}`), so the SQL stays in Evidence markdown pages and the component stays generic. OpenStreetMap tiles require no API key. If a multi-activity heatmap is needed later, evaluate deck.gl or MapLibre GL at that point.
+
+### 2026-03-14 — Evidence.dev as the frontend framework (replaces hand-rolled Svelte SPA)
+**Status**: decided
+**Context**: The original plan was a custom Svelte SPA with manual DuckDB WASM setup, Parquet fetching, and Observable Plot charts. Evidence.dev is an open-source BI-as-code framework built on SvelteKit + DuckDB WASM + Parquet — the exact same core stack — that eliminates most of that boilerplate.
+**What we did**: Evaluated Evidence against all project requirements. Evidence builds to a static site served by nginx, uses DuckDB WASM natively, queries Parquet files over HTTP, and allows custom Svelte components for anything outside its built-in component library.
+**Outcome**: Not yet implemented.
+**Decision**: Use Evidence as the frontend. Write analytics pages as SQL + Markdown. Use Evidence's built-in components (ECharts-backed) for charts and aggregate maps. Write custom Svelte components only for GPS route rendering (Leaflet) and OAuth connection UI. FastAPI backend is unchanged — it still owns all data ingestion, OAuth flows, and Parquet writing. After each sync, FastAPI triggers an Evidence rebuild so the static site reflects new data.
+
 ### 2026-03-14 — Svelte as the frontend framework
 **Status**: decided
 **Context**: Needed a framework that compiles to a small, fast static bundle with minimal runtime overhead, since the app will be self-hosted and performance on lower-end hardware matters.
@@ -106,3 +120,5 @@ A short list of specific approaches that were explicitly ruled out and why, so t
 | Suunto / TrainingPeaks OAuth (now) | Manual export fallback is adequate; OAuth approval gates add friction with no near-term payoff |
 | Building a custom auth system | Single-user app; HTTP basic auth via nginx is sufficient if hosted beyond localhost |
 | Reverse-engineering Coros API | No stable community library; not worth the maintenance burden |
+| Hand-rolled Svelte SPA + DuckDB WASM setup | Evidence.dev already provides this entire layer; building it manually adds weeks of work for no gain |
+| Evidence built-in map components for GPS routes | Built-in components only support points/bubbles/areas — no polyline layer; custom Leaflet component required |
