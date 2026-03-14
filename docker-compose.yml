@@ -16,7 +16,8 @@ services:
     volumes:
       - data:/data
     env_file:
-      - .env
+      - path: .env
+        required: false
 
 volumes:
   data:
