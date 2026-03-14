@@ -1,0 +1,22 @@
+services:
+  evidence:
+    build: ./evidence
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    volumes:
+      - data:/data:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  backend:
+    build: ./backend
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - data:/data
+    env_file:
+      - .env
+
+volumes:
+  data:
