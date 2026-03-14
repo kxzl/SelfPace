@@ -1,10 +1,12 @@
 services:
   evidence:
-    build: ./evidence
+    build:
+      context: .
+      dockerfile: evidence/Dockerfile
     ports:
       - "${FRONTEND_PORT:-3000}:80"
     volumes:
-      - data:/data:ro
+      - ./data:/data:ro
     depends_on:
       backend:
         condition: service_healthy
@@ -14,10 +16,7 @@ services:
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
-      - data:/data
+      - ./data:/data
     env_file:
       - path: .env
         required: false
-
-volumes:
-  data:

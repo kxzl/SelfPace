@@ -1,0 +1,4 @@
+name: selfpace
+type: duckdb
+options:
+  filename: ":memory:"

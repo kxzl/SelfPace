@@ -1,5 +1,7 @@
 .git
 .claude
-*.md
 .env
 .github
+README.md
+agents.md
+decisions.md

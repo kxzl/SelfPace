@@ -1,16 +1,19 @@
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
-COPY package.json ./
+COPY evidence/package.json ./
 RUN npm install
-COPY . .
-RUN npm run sources 2>/dev/null || true
+COPY evidence/ .
+
+# Copy parquet data needed by Evidence source queries at build time
+COPY data/parquet /data/parquet
+RUN npm run sources || true
 RUN npm run build
 
 FROM nginx:1.27-alpine
 
 COPY --from=builder /app/build /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY evidence/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 

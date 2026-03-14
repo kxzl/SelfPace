@@ -2,10 +2,18 @@
 title: SelfPace
 ---
 
+<Alert status="warning">
+  This project is in alpha. Features may change, break, or disappear without notice.
+</Alert>
+
 # SelfPace
 
-Running analytics powered by DuckDB WASM.
+Running analytics powered by DuckDB.
 
-Connect your data sources to get started — Intervals.icu, Strava, Garmin, or import FIT/GPX files directly.
+## Activities
 
-No activity data loaded yet. Once you connect a data source or import files, your dashboard will appear here.
+```sql activities
+select * from selfpace.activities
+```
+
+<DataTable data={activities} search=true rows=20 rowShading=true />
